@@ -1,6 +1,10 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
-List <Sach> dss = new List <Sach> ();
+using System.Text.Json;
+using System.IO; // Để thao tác với File
+string tenFileDb = "khosach.json";
+List<Sach> dss = DocDuLieu(tenFileDb);
+Console.WriteLine($"-> Da tai len {dss.Count} cuon sach tu lan truoc.");
 int hieulenh = 0;
 string maxoa;
 string loctl;
@@ -115,9 +119,54 @@ do
     }
     else
     {
+        LuuDuLieu(dss, tenFileDb);
+        Console.WriteLine("Tam biet!");
         return;
     }
 } while (true);
+void LuuDuLieu(List<Sach> danhSach, string tenFile)
+{
+    try
+    {
+        // 1. Cấu hình để nó viết tiếng Việt và xuống dòng đẹp đẽ
+        var options = new JsonSerializerOptions { WriteIndented = true };
+
+        // 2. Chuyển List thành chuỗi JSON (Serialize)
+        string jsonString = JsonSerializer.Serialize(danhSach, options);
+
+        // 3. Ghi chuỗi đó xuống ổ cứng
+        File.WriteAllText(tenFile, jsonString);
+
+        Console.WriteLine("-> Da luu du lieu thanh cong vao file: " + tenFile);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Loi khi luu file: " + ex.Message);
+    }
+}
+List<Sach> DocDuLieu(string tenFile)
+{
+    // Kiểm tra xem file có tồn tại không
+    if (!File.Exists(tenFile))
+    {
+        return new List<Sach>(); // Trả về list rỗng nếu chưa có file
+    }
+
+    try
+    {
+        // 1. Đọc toàn bộ text trong file
+        string jsonString = File.ReadAllText(tenFile);
+
+        // 2. Chuyển ngược từ chuỗi JSON thành List<Sach> (Deserialize)
+        if (string.IsNullOrEmpty(jsonString)) return new List<Sach>();
+
+        return JsonSerializer.Deserialize<List<Sach>>(jsonString);
+    }
+    catch
+    {
+        return new List<Sach>(); // Nếu file lỗi thì trả về list rỗng
+    }
+}
 
 class Sach 
 {
@@ -142,3 +191,4 @@ class Sach
         Console.WriteLine("[" + MaSach + "] " + TenSach + " :" + Gia + ",The Loai:" + TheLoai);
     }
 }
+
